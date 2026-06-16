@@ -1,0 +1,101 @@
+eureka:
+  client:
+    register-with-eureka: true
+    fetch-registry: true
+    serviceUrl:
+      defaultZone: http://localhost:8761/eureka/
+  instance:
+    prefer-ip-address: true
+
+server:
+  port: 8081
+
+song:
+  service:
+    url: http://localhost:8082
+
+storage:
+  service:
+    url: http://localhost:8085
+  fallback:
+    staging-bucket: ${STORAGE_FALLBACK_STAGING_BUCKET:staging-bucket}
+    staging-path: ${STORAGE_FALLBACK_STAGING_PATH:/staging}
+    permanent-bucket: ${STORAGE_FALLBACK_PERMANENT_BUCKET:permanent-bucket}
+    permanent-path: ${STORAGE_FALLBACK_PERMANENT_PATH:/permanent}
+
+spring:
+  application:
+    name: resource-service
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:9000
+          jwk-set-uri: http://localhost:9000/oauth2/jwks
+  datasource:
+    url: jdbc:postgresql://${RESOURCE_DB_HOST:localhost}:${RESOURCE_DB_PORT:5432}/${RESOURCE_DB_NAME:postgres}
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:postgres}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+  cloud:
+    stream:
+      function:
+        definition: processedResource
+      bindings:
+        resourceUpload-out-0:
+          destination: resource-processing
+        processedResource-in-0:
+          destination: resource-processed
+          group: resource-service-group
+      rabbit:
+        bindings:
+          resourceUpload-out-0:
+            producer:
+              autoBindDlq: true
+          processedResource-in-0:
+            consumer:
+              autoBindDlq: true
+              requeueRejected: false
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: guest
+    password: guest
+
+resilience4j:
+  retry:
+    instances:
+      storageService:
+        max-attempts: 3
+        wait-duration: 1s
+        retry-exceptions:
+          - java.net.ConnectException
+          - java.net.SocketTimeoutException
+          - org.springframework.web.client.ResourceAccessException
+        ignore-exceptions:
+          - org.springframework.web.client.HttpClientErrorException
+  circuitbreaker:
+    instances:
+      songService:
+        registerHealthIndicator: true
+        slidingWindowSize: 10
+        minimumNumberOfCalls: 5
+        permittedNumberOfCallsInHalfOpenState: 3
+        waitDurationInOpenState: 10s
+        failureRateThreshold: 50
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+      storageService:
+        registerHealthIndicator: true
+        slidingWindowSize: 10
+        minimumNumberOfCalls: 5
+        permittedNumberOfCallsInHalfOpenState: 3
+        waitDurationInOpenState: 10s
+        failureRateThreshold: 50
+        automaticTransitionFromOpenToHalfOpenEnabled: true

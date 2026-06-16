@@ -1,0 +1,22 @@
+spring:
+  cloud:
+    stream:
+      bindings:
+        resourceProcessed-out-0:
+          destination: resource-processed
+      rabbit:
+        bindings:
+          resourceProcessed-out-0:
+            producer:
+              autoBindDlq: true
+  rabbitmq:
+    host: rabbitmq
+    port: 5672
+
+resource:
+  service:
+    url: http://resource-service:8081
+
+song:
+  service:
+    url: http://song-service:8082

@@ -1,0 +1,24 @@
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://discovery-service:8761/eureka/
+  instance:
+    prefer-ip-address: true
+
+spring:
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://auth-service:9000
+          jwk-set-uri: http://auth-service:9000/oauth2/jwks
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://${STORAGE_DB_HOST:storage-db}:${STORAGE_DB_PORT:5432}/${STORAGE_DB_NAME:storage_db}
+    username: ${SPRING_DATASOURCE_USERNAME:${DB_USERNAME}}
+    password: ${SPRING_DATASOURCE_PASSWORD:${DB_PASSWORD}}
+  cloud:
+    aws:
+      s3:
+        access-key: ${AWS_S3_ACCESS_KEY:minioadmin}
+        secret-key: ${AWS_S3_SECRET_KEY:minioadmin}
+      endpoint: http://localstack:4566

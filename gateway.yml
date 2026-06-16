@@ -1,0 +1,51 @@
+eureka:
+  client:
+    register-with-eureka: true
+    fetch-registry: true
+    serviceUrl:
+      defaultZone: http://localhost:8761/eureka/
+  instance:
+    prefer-ip-address: true
+
+spring:
+  application:
+    name: gateway
+  cloud:
+    gateway:
+      discovery:
+        locator:
+          enabled: true
+          lower-case-service-id: true
+      routes:
+        - id: song-service
+          uri: lb://song-service
+          predicates:
+            - Path=/songs/**
+
+        - id: resource-service
+          uri: lb://resource-service
+          predicates:
+            - Path=/resources/**
+
+        - id: storage-service
+          uri: lb://storage-service
+          predicates:
+            - Path=/storages/**
+        - id: storage-service
+          uri: lb://storage-service
+          predicates:
+            - Path=/storages/**
+
+        - id: auth-service
+          uri: lb://auth-service
+          predicates:
+            - Path=/users/**
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:9000
+          jwk-set-uri: http://localhost:9000/oauth2/jwks
+
+server:
+  port: 8080

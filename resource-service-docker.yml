@@ -1,0 +1,70 @@
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://discovery-service:8761/eureka/
+  instance:
+    prefer-ip-address: true
+
+song:
+  service:
+    url: http://song-service:8082
+
+storage:
+  service:
+    url: http://storage-service:8085
+  fallback:
+    staging-bucket: ${STORAGE_FALLBACK_STAGING_BUCKET:staging-bucket}
+    staging-path: ${STORAGE_FALLBACK_STAGING_PATH:/staging}
+    permanent-bucket: ${STORAGE_FALLBACK_PERMANENT_BUCKET:permanent-bucket}
+    permanent-path: ${STORAGE_FALLBACK_PERMANENT_PATH:/permanent}
+
+spring:
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://auth-service:9000
+          jwk-set-uri: http://auth-service:9000/oauth2/jwks
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://${RESOURCE_DB_HOST:resource-db}:${RESOURCE_DB_PORT:5432}/${RESOURCE_DB_NAME:resource_db}
+    username: ${SPRING_DATASOURCE_USERNAME:${DB_USERNAME}}
+    password: ${SPRING_DATASOURCE_PASSWORD:postgres}
+  rabbitmq:
+    host: rabbitmq
+    port: 5672
+  cloud:
+    aws:
+      s3:
+        access-key: ${AWS_S3_ACCESS_KEY:minioadmin}
+        secret-key: ${AWS_S3_SECRET_KEY:minioadmin}
+
+resilience4j:
+  retry:
+    instances:
+      storageService:
+        max-attempts: 3
+        wait-duration: 1s
+        retry-exceptions:
+          - java.net.ConnectException
+          - java.net.SocketTimeoutException
+          - org.springframework.web.client.ResourceAccessException
+        ignore-exceptions:
+          - org.springframework.web.client.HttpClientErrorException
+  circuitbreaker:
+    instances:
+      songService:
+        registerHealthIndicator: true
+        slidingWindowSize: 10
+        minimumNumberOfCalls: 5
+        permittedNumberOfCallsInHalfOpenState: 3
+        waitDurationInOpenState: 10s
+        failureRateThreshold: 50
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+      storageService:
+        registerHealthIndicator: true
+        slidingWindowSize: 10
+        minimumNumberOfCalls: 5
+        permittedNumberOfCallsInHalfOpenState: 3
+        waitDurationInOpenState: 10s
+        failureRateThreshold: 50
+        automaticTransitionFromOpenToHalfOpenEnabled: true
