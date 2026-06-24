@@ -41,3 +41,22 @@ spring:
 
 server:
   port: 8080
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info, refresh, prometheus, gateway
+      base-path: /actuator
+  endpoint:
+    health:
+      probes:
+        enabled: true
+  tracing:
+    sampling:
+      probability: 1.0
+    propagation:
+      type: w3c
+    baggage:
+      remote-fields: x-trace-id
+      correlation-fields: trace-id
