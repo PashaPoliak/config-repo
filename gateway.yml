@@ -8,6 +8,12 @@ eureka:
     prefer-ip-address: true
 
 spring:
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:9000/auth
+          jwk-set-uri: http://localhost:9000/auth/.well-known/jwks.json
   application:
     name: gateway
   cloud:
