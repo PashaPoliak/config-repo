@@ -36,8 +36,6 @@ spring:
           uri: lb://auth-service
           predicates:
             - Path=/auth/users, /auth/users/**
-          filters:
-            - StripPrefix=1
 
 server:
   port: 8080
